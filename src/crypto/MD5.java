@@ -23,10 +23,12 @@ public class MD5 {
         this.body = body;
     }
 
+    //返还拼接好参数的路径（包含nonce，sign，和其他必要参数）
     public String getFixedPath() {
         return fixedPath;
     }
 
+    //签名规则计算 返还计算后的sign
     public String genSign(){
         TreeMap options = new TreeMap();
         options.put("nonce",nonce);

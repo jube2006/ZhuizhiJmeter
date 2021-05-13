@@ -22,7 +22,7 @@ public class RequestManager {
     private HTTPSamplerProxy sampler = null;
     private String secretKey = "";
 
-
+    //标准构造器，使用Config.class解析域名并配置相应的秘钥
     public RequestManager(String url,HTTPSamplerProxy sampler) {
         this.urlSB = new StringBuilder(url);
         this.sampler = sampler;
@@ -31,6 +31,7 @@ public class RequestManager {
         genSign();
     }
 
+    //备用构造器，手动提供秘钥
     public RequestManager(String url,String key,HTTPSamplerProxy sampler) {
         this.urlSB = new StringBuilder(url);
         this.secretKey = key;
@@ -40,6 +41,7 @@ public class RequestManager {
         genSign();
     }
 
+    //拆分域名 domain
     private void initDomain(){
         String prefix = "https://";
         int prefixIndex = urlSB.indexOf(prefix);
@@ -50,12 +52,14 @@ public class RequestManager {
         urlSB.delete(domainIndex,domainIndex+domain.length());
     }
 
+    //拆分路径 path
     private void initPath(){
         path = urlSB.substring(0,urlSB.indexOf("?")+1);
         int pathIndex = urlSB.indexOf(path);
         urlSB.delete(pathIndex,pathIndex+path.length());
     }
 
+    //拆分url中的参数，并存入Map
     private void mapQueryToParams(){
         Map<String, String[]> queryMap = RequestViewHTTP.getQueryMap(urlSB.toString());
         Set<String> strings = queryMap.keySet();
@@ -65,6 +69,7 @@ public class RequestManager {
         }
     }
 
+    //获取jmeter配置的raw型body
     private void initBody(){
         Arguments args = sampler.getArguments();
         if(args.getArgumentCount()!=0){
@@ -82,15 +87,18 @@ public class RequestManager {
         this.nonce = nonce.toString();
     }
 
+    //获取签名并赋值
     private void genSign(){
         if(secretKey.isEmpty())
             secretKey = Config.getSecretKey(domain);
 
         MD5 md5 = new MD5(secretKey,nonce,params,timestamp,body);
+        //计算签名
         sign = md5.genSign();
         setPath(path+md5.getFixedPath());
     }
 
+    //执行拆分url，以及初始化各变量
     private void init(){
         params = new TreeMap<>();
         initDomain();
